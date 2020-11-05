@@ -8,7 +8,7 @@ Mostly there:
 * Overall the app.js file is pretty messy. Could definitely use some organization help, haha.
 
 Link to live site:
-https://ddemosi.github.io/around-auth/
+https://ddemosi.github.io/react-around-auth/
 
 Created with ReactJS
 
