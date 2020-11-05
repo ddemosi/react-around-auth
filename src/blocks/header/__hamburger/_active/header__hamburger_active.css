@@ -1,0 +1,6 @@
+.header__hamburger_active {
+    background-image: url('../../../../images/Close-Icon.svg');
+    width: 40px;
+    height: 40px;
+    background-size: cover;
+}

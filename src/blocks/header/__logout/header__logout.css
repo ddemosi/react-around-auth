@@ -1,0 +1,22 @@
+.header__logout {
+    border: none;
+    color: #a9a9a9;
+    background: none;
+    cursor: pointer;
+    visibility: visible;
+}
+
+.header__logout:hover {
+    opacity: .8;
+}
+
+@media screen and (max-width: 530px) {
+    .header__logout {
+        visibility: hidden;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 80px;
+        z-index: 0;
+    }
+}

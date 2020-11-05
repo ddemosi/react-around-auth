@@ -1,0 +1,22 @@
+.header__hamburger {
+    margin: auto 0 auto auto;
+    outline: none;
+    border: none;
+    background-color: #000000;
+    background-image: url('../../../images/hamburger-icon.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 24px;
+    height: 32px;
+    display: none;
+}
+
+.header__hamburger:hover {
+    opacity: .8;
+}
+
+@media screen and (max-width: 530px) {
+    .header__hamburger {
+        display: block;
+    }
+}
