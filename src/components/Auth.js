@@ -10,19 +10,11 @@ const Auth = (props) => {
     if (props.name === 'Sign Up') {
       return <Register 
         name={props.name} 
-        setRegistrationSuccess={props.setRegistrationSuccess} 
-        toggleInfoTooltip={props.toggleInfoTooltip} 
-        toggleLoggedIn={props.toggleLoggedIn}
-        email={props.email}
-        setEmail={props.setEmail}  />
+        registerRequest={props.registerRequest}  />
     } else if (props.name === 'Log in'){
       return <Login 
         name={props.name} 
-        setRegistrationSuccess={props.setRegistrationSuccess} 
-        toggleInfoTooltip={props.toggleInfoTooltip} 
-        toggleLoggedIn={props.toggleLoggedIn}
-        email={props.email}
-        setEmail={props.setEmail}  />
+        loginRequest={props.loginRequest}  />
     } else {
       console.log("Component doesn't exist");
       return null

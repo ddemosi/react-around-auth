@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
-import '../index.css';
 
 import Header from './Header.js';
 import Main from './Main.js';
@@ -18,7 +17,7 @@ import ProtectedRoute from './ProtectedRoute';
 import InfoTooltip from './InfoTooltip';
 
 function App () {
-    const [currentUser, setCurrentInfo] = useState("")
+    const [currentUser, setCurrentInfo] = useState({})
     // Popup states
     const [editAvatarIsOpen, toggleEditAvatar] = useState(false);
     const [editProfileIsOpen, toggleEditProfile] = useState(false);
@@ -37,10 +36,58 @@ function App () {
 
     //Project 14 new States
     const [isLoggedIn, toggleLoggedIn] = useState(false);
-    const [registrationSuccess, setRegistrationSuccess] = useState("");
+    const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const [email, setEmail] = useState("");
     const [hamburger, toggleHamburgerState] = useState(false);
 
+    // Project 14 new functions
+    // API request for login
+
+    function loginRequest(email, password) {
+        authApi.signIn(email, password)
+            .then((res) => {
+                if (res.status === 400) {
+                    return Promise.reject(new Error('The username or password was not provided'))
+                } else if (res.status === 401) {
+                    return Promise.reject(new Error('Could not find a user with that email'))
+                } else {
+                    toggleLoggedIn(true);
+                    return res;
+                }
+            })
+            .then((data) => {
+                setEmail(email);
+                localStorage.setItem('email', email);
+                localStorage.setItem('token', data.token);
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+    }
+
+    // API request for register
+
+    function registerRequest(email, password) {
+        authApi.signUp(email, password)
+            .then((res) => {
+                if (res.status === 400) {
+                    return Promise.reject(new Error('The username or password is not in the proper format'))
+                } else {
+                    setRegistrationSuccess(true);
+                    toggleInfoTooltip(true);
+                    toggleLoggedIn(true);
+                    return res.data;
+                }
+            })
+            .then((data) => {
+                setEmail(data.email);
+            })
+            .catch((err) => {
+                console.log(err);
+                setRegistrationSuccess(false);
+                toggleInfoTooltip(true);
+            })
+    }
 
     //functions for Edit Profile
 
@@ -52,9 +99,12 @@ function App () {
         api.changeProfileInfo({ name: name, about: description }).then(() => {
             setCurrentUserInfo();
         })
+            .then(() => {
+                toggleSaveText(false);
+                toggleEditProfile(false);
+            })
             .catch(err => console.log(err));
-        toggleSaveText(false);
-        toggleEditProfile(false);
+
     }
 
 
@@ -67,9 +117,12 @@ function App () {
         api.updateAvatar(link).then(() => {
             setCurrentUserInfo();
         })
+            .then(() => {
+                toggleSaveText(false)
+                toggleEditAvatar(false);
+            })
             .catch(err => console.log(err));
-        toggleSaveText(false)
-        toggleEditAvatar(false);
+
     }
 
 
@@ -106,9 +159,12 @@ function App () {
             //set new card array state
             setCards(filteredCards);
         })
+            .then(() => {
+                toggleSaveText(false);
+                toggleConfirmDelete(false);
+            })
             .catch(err => console.log(err));
-        toggleSaveText(false);
-        toggleConfirmDelete(false);
+
     }
     function handleDeleteClick (cardId) {
         setConfirmDeleteId(cardId);
@@ -176,25 +232,25 @@ function App () {
 
     // API request to verify JWT
     useEffect(() => {
-        if(localStorage.getItem('token')) {
-          authApi.checkToken(localStorage.getItem('token'))
-            .then((res) => {
-                if (res.status === 400) {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('email');
-                    return Promise.reject(new Error('No token or improper format'));
-                } else if (res.status === 401) {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('email');
-                    return Promise.reject(new Error('Invalid token'));
-                } else {
-                    toggleLoggedIn(true);
-                    setEmail(localStorage.getItem('email'));
-                }
-            })
-            .catch((err) => {
-                console.log(err);
-            })
+        if (localStorage.getItem('token')) {
+            authApi.checkToken(localStorage.getItem('token'))
+                .then((res) => {
+                    if (res.status === 400) {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('email');
+                        return Promise.reject(new Error('No token or improper format'));
+                    } else if (res.status === 401) {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('email');
+                        return Promise.reject(new Error('Invalid token'));
+                    } else {
+                        toggleLoggedIn(true);
+                        setEmail(localStorage.getItem('email'));
+                    }
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
         } else {
             return
         }
@@ -235,13 +291,13 @@ function App () {
         <CurrentUserContext.Provider value={currentUser}>
             <div className="App">
                 <div className="page">
-                    
+
                     <Router>
                         <Switch>
                             <Route exact path="/">
-                                <Header 
-                                    email={email} 
-                                    setEmail={setEmail} 
+                                <Header
+                                    email={email}
+                                    setEmail={setEmail}
                                     hamburger={hamburger}
                                     toggleHamburgerState={toggleHamburgerState} />
                                 <ProtectedRoute
@@ -256,34 +312,27 @@ function App () {
                                     cards={cards}
                                     handleDeleteClick={handleDeleteClick}
                                     handleCardLike={handleCardLike}
-                                    />
+                                />
                             </Route>
-                            <Route path="/login">
-                                <Header name="Sign Up" link="/register"/>
-                                {isLoggedIn ? <Redirect to="/" /> : <Auth 
-                                    name="Log in" 
-                                    link="/register" 
-                                    linkName="Sign up" 
-                                    toggleInfoTooltip={toggleInfoTooltip} 
-                                    setRegistrationSuccess={setRegistrationSuccess} 
-                                    toggleLoggedIn={toggleLoggedIn}
-                                    email={email}
-                                    setEmail={setEmail} 
+                            <Route exact path="/login">
+                                <Header name="Sign Up" link="/register" />
+                                {isLoggedIn ? <Redirect to="/" /> : <Auth
+                                    name="Log in"
+                                    link="/register"
+                                    linkName="Sign up"
+                                    loginRequest={loginRequest}
                                     buttonDescription="Not a member yet?" />}
                             </Route>
-                            <Route path="/register">
+                            <Route exact path="/register">
                                 <Header name="Log in" link="/login" />
-                                {isLoggedIn ? <Redirect to="/" /> : <Auth 
-                                    name="Sign Up" 
-                                    link="/login" 
-                                    linkName="Log in" 
-                                    toggleInfoTooltip={toggleInfoTooltip} 
-                                    setRegistrationSuccess={setRegistrationSuccess} 
-                                    toggleLoggedIn={toggleLoggedIn}
-                                    email={email}
-                                    setEmail={setEmail} 
+                                {isLoggedIn ? <Redirect to="/" /> : <Auth
+                                    name="Sign Up"
+                                    link="/login"
+                                    linkName="Log in"
+                                    registerRequest={registerRequest}
                                     buttonDescription="Already a member?" />}
                             </Route>
+                            <Redirect from="*" to="/" />
                         </Switch>
                     </Router>
                     {/* Popup forms */}
